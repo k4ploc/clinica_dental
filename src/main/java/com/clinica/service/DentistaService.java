@@ -1,9 +1,9 @@
 package com.clinica.service;
 
+import com.clinica.model.dto.DentistaRequest;
 import org.springframework.stereotype.Service;
 
 import com.clinica.model.Dentista;
-import com.clinica.model.dto.DentistaRequest;
 import com.clinica.repository.DentistaRepository;
 
 @Service

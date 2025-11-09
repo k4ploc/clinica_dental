@@ -1,13 +1,13 @@
 package com.clinica.repository;
 
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.stereotype.Repository;
+
 import com.clinica.model.Paciente;
 
-public class PacienteRepository {
+@Repository
+public interface PacienteRepository extends JpaRepository<Paciente, Long> {
 
-	public void save(Paciente paciente) {
-	}
+	public boolean existsByEmail(String email);
 
-	public Paciente findById(String id) {
-		return null;
-	}
 }

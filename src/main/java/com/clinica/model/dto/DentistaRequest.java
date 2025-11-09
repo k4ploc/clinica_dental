@@ -1,13 +1,16 @@
 package com.clinica.model.dto;
 
-import lombok.Data;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 
-@Data
-public class DentistaRequest {
+public record DentistaRequest (
 
-	private String nombre;
-	private String apellido;
-	private String telefono;
-	private String especialidad;
+	 String nombre,
+	 String apellido,
+	 String telefono,
+
+	@NotNull(message = "Especialidad es obligatoria")
+	@NotBlank(message = "Especialidad es obligatoria")
+	 String especialidad){
 
 }

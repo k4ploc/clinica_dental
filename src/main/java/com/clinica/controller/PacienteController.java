@@ -13,7 +13,10 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.clinica.model.Paciente;
+import com.clinica.model.dto.PacienteRequest;
 import com.clinica.service.PacienteService;
+
+import jakarta.validation.Valid;
 
 @RestController
 @RequestMapping("/pacientes")
@@ -26,15 +29,15 @@ public class PacienteController {
 	}
 
 	@GetMapping
-	public ResponseEntity<?> listPacientes() {
+	public ResponseEntity<List<Paciente>> listPacientes() {
 		List<Paciente> response = pacienteService.listarPacientes();
 		return ResponseEntity.ok(response);
 	}
 
 	@PostMapping
-	public String crearPaciente(@RequestBody Paciente paciente) {
-		pacienteService.crearPaciente(paciente);
-		return "✅ Paciente creado con ID: " + paciente.getId();
+	public String crearPaciente(@Valid @RequestBody PacienteRequest request) {
+		pacienteService.crearPaciente(request);
+		return "✅ Paciente creado con ID: ";
 	}
 
 	@GetMapping("/{id}")

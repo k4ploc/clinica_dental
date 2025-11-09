@@ -10,6 +10,8 @@ import com.clinica.model.Dentista;
 import com.clinica.model.dto.DentistaRequest;
 import com.clinica.service.DentistaService;
 
+import jakarta.validation.Valid;
+
 @RestController
 @RequestMapping("/dentista")
 public class DentistaController {
@@ -21,7 +23,7 @@ public class DentistaController {
 	}
 
 	@PostMapping
-	public ResponseEntity<Dentista> createDentista(@RequestBody DentistaRequest request) {
+	public ResponseEntity<Dentista> createDentista(@Valid @RequestBody DentistaRequest request) {
 		Dentista newDentista = service.createDentista(request);
 		return ResponseEntity.ok(newDentista);
 	}
