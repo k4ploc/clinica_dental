@@ -1,21 +1,29 @@
 services:
   app:
-    build: .
+    image: maven:3.9.9-eclipse-temurin-24
     container_name: clinica_app
+    working_dir: /app
+    volumes:
+      - ./:/app:delegated
+      - m2_repo:/root/.m2/repository
     ports:
-      - "8080:8080"
+      - "9090:8080"
     env_file: .env
     depends_on:
       - db
+    command: mvn -DskipTests spring-boot:run
+    environment:
+      - SPRING_PROFILES_ACTIVE=dev
 
   db:
-    image: postgres:15
-    container_name: postgres_clinica
-    ports:
-      - "5432:5432"
-    env_file: .env
-    volumes:
-      - db_data:/var/lib/postgresql/data
+      image: postgres:15
+      container_name: postgres_clinica
+      ports:
+        - "5432:5432"
+      env_file: .env
+      volumes:
+        - db_data:/var/lib/postgresql/data
 
 volumes:
-  db_data:o
+  db_data:
+  m2_repo:

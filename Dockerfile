@@ -1,24 +1,46 @@
-# Use an official OpenJDK runtime as a parent image
-FROM openjdk:25-jdk-slim
+# syntax=docker/dockerfile:1.5
+# ============================================================================
+# 🏗️ Stage 1 — Build with Maven
+# ============================================================================
+FROM maven:3.9.9-eclipse-temurin-21-alpine AS builder
 
-# Set the working directory in the container
 WORKDIR /app
 
-# Copy the Maven wrapper and pom.xml to the container
-COPY pom.xml mvnw mvnw.cmd /app/
-COPY .mvn /app/.mvn
+# Cache Maven dependencies (using BuildKit mount cache)
+COPY pom.xml .
+RUN --mount=type=cache,target=/root/.m2 mvn -B dependency:go-offline
 
-# Download Maven dependencies (this step is cached unless pom.xml changes)
-RUN ./mvnw dependency:go-offline -B
+# Copy sources and build
+COPY src ./src
+RUN --mount=type=cache,target=/root/.m2 mvn -B package -DskipTests -DskipITs
 
-# Copy the project source code to the container
-COPY src /app/src
+# ============================================================================
+# 🚀 Stage 2 — Minimal Runtime Image (alpine-based)
+# ============================================================================
+FROM eclipse-temurin:21-jre-alpine
 
-# Build the application
-RUN ./mvnw package -DskipTests
+WORKDIR /app
 
-# Expose the port the application runs on
+# Create non-root user for security
+RUN addgroup -S appgrp && adduser -S appuser -G appgrp
+
+# Copy only the built JAR from builder
+COPY --from=builder /app/target/clinica-0.0.1-SNAPSHOT.jar app.jar
+RUN chown appuser:appgrp /app/app.jar
+
+# Switch to non-root user
+USER appuser
+
+# Expose port
 EXPOSE 8080
 
-# Run the application
-CMD ["java", "-jar", "target/clinica-0.0.1-SNAPSHOT.jar"]
+# JVM optimization flags for containerized environment
+ENV JAVA_OPTS="-Xms256m -Xmx512m -XX:+UseG1GC -XX:MaxGCPauseMillis=200"
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
+  CMD wget --no-verbose --tries=1 --spider http://localhost:8080/actuator/health || exit 1
+
+# Run application
+ENTRYPOINT ["sh", "-c", "java ${JAVA_OPTS} -jar app.jar"]
+

@@ -1,6 +1,10 @@
 package com.clinica.model;
 
+import java.time.LocalDateTime;
 import java.util.List;
+
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
 
 import com.clinica.model.dto.DentistaRequest;
 import com.clinica.model.enums.Especialidad;
@@ -37,6 +41,12 @@ public class Dentista {
 	private Especialidad especialidad;
 	@OneToMany(mappedBy = "dentista", cascade = CascadeType.ALL, orphanRemoval = true)
 	private List<Paciente> pacientes;
+
+	@CreationTimestamp
+	private LocalDateTime createdAt;
+
+	@UpdateTimestamp
+	private LocalDateTime updatedAt;
 
 	public Dentista(DentistaRequest request) {
 		this.nombre = request.nombre();

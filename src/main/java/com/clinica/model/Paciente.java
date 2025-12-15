@@ -1,5 +1,10 @@
 package com.clinica.model;
 
+import java.time.LocalDateTime;
+
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
+
 import com.clinica.model.dto.PacienteRequest;
 
 import jakarta.persistence.Entity;
@@ -36,6 +41,12 @@ public class Paciente {
 	@ManyToOne
 	@JoinColumn(name = "dentista_id")
 	private Dentista dentista;
+
+	@CreationTimestamp
+	private LocalDateTime createdAt;
+
+	@UpdateTimestamp
+	private LocalDateTime updatedAt;
 
 	public Paciente(PacienteRequest request, Dentista dentista) {
 		this.nombre = request.nombre();
