@@ -6,12 +6,12 @@ CREATE TABLE cita (
     paciente_id INT NOT NULL,
     dentista_id INT NOT NULL,
 
-    CONSTRAINT fk_paciente
+    CONSTRAINT fk_cita_paciente
         FOREIGN KEY (paciente_id)
         REFERENCES paciente (id)
         ON DELETE CASCADE,
 
-    CONSTRAINT fk_dentista
+    CONSTRAINT fk_cita_dentista
         FOREIGN KEY (dentista_id)
         REFERENCES dentista (id)
         ON DELETE CASCADE

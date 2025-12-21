@@ -8,6 +8,7 @@ Si alguna respuesta no existe en documentación oficial, Copilot debe responder:
 ---
 
 ## Lineamientos Generales
+- Los comandos de consola a ejecutar deben ser adaptados para ejecutarse desde Powershell
 - Basarse en los documentos del proyecto de la carpeta `/docs` para entender el contexto.
 - Lenguaje obligatorio: **Java 21**.
 - Construcción del proyecto: **Maven**.
