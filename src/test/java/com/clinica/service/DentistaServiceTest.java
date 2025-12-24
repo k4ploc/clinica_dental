@@ -63,7 +63,8 @@ class DentistaServiceTest {
 
     @Test
     void testGetDentistas() {
-        when(dentistaRepository.findAll()).thenReturn(List.of(dentista));
+        // Ahora usa findAllWithPacientes() para evitar N+1
+        when(dentistaRepository.findAllWithPacientes()).thenReturn(List.of(dentista));
 
         List<DentistaResponse> resultado = dentistaService.getDentistas();
 
@@ -74,7 +75,8 @@ class DentistaServiceTest {
 
     @Test
     void testObtenerDentista_Success() {
-        when(dentistaRepository.findById(1L)).thenReturn(Optional.of(dentista));
+        // Ahora usa findByIdWithPacientes() para evitar N+1
+        when(dentistaRepository.findByIdWithPacientes(1L)).thenReturn(Optional.of(dentista));
 
         DentistaResponse resultado = dentistaService.obtenerDentista(1L);
 
@@ -85,7 +87,8 @@ class DentistaServiceTest {
 
     @Test
     void testObtenerDentista_NotFound() {
-        when(dentistaRepository.findById(1L)).thenReturn(Optional.empty());
+        // Ahora usa findByIdWithPacientes()
+        when(dentistaRepository.findByIdWithPacientes(1L)).thenReturn(Optional.empty());
 
         assertThrows(RuntimeException.class, () -> {
             dentistaService.obtenerDentista(1L);

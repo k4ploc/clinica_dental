@@ -7,9 +7,10 @@ import com.clinica.errors.ResourceNotFoundException;
 import com.clinica.model.dto.PacienteResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -37,6 +38,7 @@ public class PacienteService {
     }
 
     @Transactional(readOnly = true)
+    @Cacheable(value = "pacientes")
     public List<PacienteResponse> listarPacientes() {
         log.debug("Obteniendo lista completa de pacientes");
         var lista = repository.findAll();
@@ -55,6 +57,7 @@ public class PacienteService {
     }
 
     @Transactional
+    @CacheEvict(value = "pacientes", allEntries = true)
     public PacienteResponse crearPaciente(PacienteRequest request) {
         log.info("Iniciando creación de nuevo paciente: {} {}", request.nombre(), request.apellido());
 
@@ -98,6 +101,7 @@ public class PacienteService {
     }
 
     @Transactional
+    @CacheEvict(value = "pacientes", allEntries = true)
     public PacienteResponse actualizarPaciente(Long id, PacienteRequest request) {
         log.info("Iniciando actualización de paciente con ID: {}", id);
         Paciente paciente = repository.findById(id)
@@ -135,6 +139,7 @@ public class PacienteService {
     }
 
     @Transactional
+    @CacheEvict(value = "pacientes", allEntries = true)
     public void eliminarPaciente(Long id) {
         log.info("Iniciando eliminación de paciente con ID: {}", id);
         if (!repository.existsById(id)) {

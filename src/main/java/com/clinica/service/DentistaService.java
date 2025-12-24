@@ -1,6 +1,5 @@
 package com.clinica.service;
 
-import com.clinica.controller.PacienteController;
 import com.clinica.errors.ResourceNotFoundException;
 import com.clinica.model.dto.DentistaRequest;
 import org.slf4j.Logger;
@@ -13,19 +12,19 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.clinica.model.Dentista;
-import com.clinica.model.Paciente;
 import com.clinica.model.dto.DentistaResponse;
 import com.clinica.model.dto.PacienteResponse;
 import com.clinica.model.enums.Especialidad;
 import com.clinica.repository.DentistaRepository;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
 @Service
 public class DentistaService {
 
-    private static final Logger log = LoggerFactory.getLogger(PacienteController.class);
+    private static final Logger log = LoggerFactory.getLogger(DentistaService.class);
 
     private final DentistaRepository repository;
 
@@ -39,22 +38,36 @@ public class DentistaService {
         return repository.save(new Dentista(request));
     }
 
+    /**
+     * Obtiene todos los dentistas con sus pacientes (usa JOIN FETCH para evitar N+1).
+     */
     @Transactional(readOnly = true)
     @Cacheable(value = "dentistas")
     public List<DentistaResponse> getDentistas() {
-        List<Dentista> lista = repository.findAll();
-        return lista.stream().map(this::toResponse).collect(Collectors.toList());
+        log.debug("Obteniendo lista de dentistas con pacientes (JOIN FETCH)");
+        List<Dentista> lista = repository.findAllWithPacientes();
+        log.info("Se encontraron {} dentistas", lista.size());
+        return lista.stream().map(this::toResponseWithPacientes).collect(Collectors.toList());
     }
 
+    /**
+     * Obtiene dentistas paginados (sin cargar pacientes para mejor rendimiento).
+     */
     @Transactional(readOnly = true)
     public Page<DentistaResponse> getDentistasPaginados(Pageable pageable) {
+        log.debug("Obteniendo dentistas paginados: página {}, tamaño {}",
+                pageable.getPageNumber(), pageable.getPageSize());
         Page<Dentista> page = repository.findAll(pageable);
-        return page.map(this::toResponse);
+        log.info("Se retornan {} dentistas de {} total", page.getNumberOfElements(), page.getTotalElements());
+        return page.map(this::toResponseSimple);
     }
 
-    private DentistaResponse toResponse(Dentista d) {
-        List<PacienteResponse> pacientes = null;
-        if (d.getPacientes() != null) {
+    /**
+     * Convierte Dentista a DentistaResponse CON pacientes (para detalle).
+     */
+    private DentistaResponse toResponseWithPacientes(Dentista d) {
+        List<PacienteResponse> pacientes = Collections.emptyList();
+        if (d.getPacientes() != null && !d.getPacientes().isEmpty()) {
             pacientes = d.getPacientes().stream()
                     .map(p -> new PacienteResponse(p.getId(), p.getNombre(), p.getApellido(), p.getTelefono(), p.getEmail()))
                     .collect(Collectors.toList());
@@ -63,18 +76,44 @@ public class DentistaService {
         return new DentistaResponse(d.getId(), d.getNombre(), d.getApellido(), d.getTelefono(), especialidad, pacientes);
     }
 
+    /**
+     * Convierte Dentista a DentistaResponse SIN pacientes (para listados).
+     */
+    private DentistaResponse toResponseSimple(Dentista d) {
+        String especialidad = d.getEspecialidad() != null ? d.getEspecialidad().name() : null;
+        return new DentistaResponse(d.getId(), d.getNombre(), d.getApellido(), d.getTelefono(), especialidad, null);
+    }
+
+    /**
+     * Obtiene un dentista por ID con sus pacientes (usa JOIN FETCH).
+     */
     @Transactional(readOnly = true)
     public DentistaResponse obtenerDentista(Long id) {
-        Dentista dentista = repository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Dentista", id));
-        return toResponse(dentista);
+        log.debug("Buscando dentista con ID: {} (con pacientes)", id);
+        Dentista dentista = repository.findByIdWithPacientes(id)
+                .orElseThrow(() -> {
+                    log.warn("Dentista no encontrado con ID: {}", id);
+                    return new ResourceNotFoundException("Dentista", id);
+                });
+        log.info("Dentista encontrado: {} {} con {} pacientes",
+                dentista.getNombre(), dentista.getApellido(),
+                dentista.getPacientes() != null ? dentista.getPacientes().size() : 0);
+        return toResponseWithPacientes(dentista);
     }
 
     @Transactional
     @CacheEvict(value = "dentistas", allEntries = true)
     public DentistaResponse actualizarDentista(Long id, DentistaRequest request) {
+        log.info("Iniciando actualización de dentista con ID: {}", id);
         Dentista dentista = repository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Dentista", id));
+                .orElseThrow(() -> {
+                    log.warn("Dentista a actualizar no encontrado con ID: {}", id);
+                    return new ResourceNotFoundException("Dentista", id);
+                });
+
+        log.debug("Actualizando datos: {} {} -> {} {}",
+                dentista.getNombre(), dentista.getApellido(),
+                request.nombre(), request.apellido());
 
         dentista.setNombre(request.nombre());
         dentista.setApellido(request.apellido());
@@ -82,7 +121,8 @@ public class DentistaService {
         dentista.setEspecialidad(Especialidad.valueOf(request.especialidad()));
 
         Dentista actualizado = repository.save(dentista);
-        return toResponse(actualizado);
+        log.info("Dentista actualizado exitosamente con ID: {}", id);
+        return toResponseSimple(actualizado);
     }
 
     @Transactional
