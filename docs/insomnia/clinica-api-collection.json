@@ -554,6 +554,309 @@
       "settingRebuildPath": true,
       "settingFollowRedirects": "global",
       "_type": "request"
+    },
+    {
+      "_id": "fld_citas",
+      "parentId": "wrk_clinica",
+      "modified": 1704067200000,
+      "created": 1704067200000,
+      "name": "Citas",
+      "description": "CRUD de citas medicas",
+      "environment": {},
+      "environmentPropertyOrder": null,
+      "metaSortKey": -1704066900000,
+      "_type": "request_group"
+    },
+    {
+      "_id": "req_citas_list",
+      "parentId": "fld_citas",
+      "modified": 1704067200000,
+      "created": 1704067200000,
+      "url": "{{ _.base_url }}/api/citas",
+      "name": "List Citas",
+      "description": "Obtiene lista paginada de citas",
+      "method": "GET",
+      "body": {},
+      "parameters": [
+        {
+          "name": "page",
+          "value": "0",
+          "description": "Numero de pagina (0-indexed)"
+        },
+        {
+          "name": "size",
+          "value": "10",
+          "description": "Elementos por pagina"
+        },
+        {
+          "name": "sort",
+          "value": "fecha",
+          "description": "Campo de ordenamiento"
+        },
+        {
+          "name": "direction",
+          "value": "asc",
+          "description": "Direccion (asc/desc)"
+        }
+      ],
+      "headers": [],
+      "authentication": {
+        "type": "bearer",
+        "token": "{% response 'body', 'req_login', 'b64::JC5hY2Nlc3NfdG9rZW4=::46b', 'always', 60 %}",
+        "disabled": false
+      },
+      "metaSortKey": -1704067200000,
+      "isPrivate": false,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global",
+      "_type": "request"
+    },
+    {
+      "_id": "req_citas_get",
+      "parentId": "fld_citas",
+      "modified": 1704067200000,
+      "created": 1704067200000,
+      "url": "{{ _.base_url }}/api/citas/1",
+      "name": "Get Cita by ID",
+      "description": "Obtiene una cita por su ID",
+      "method": "GET",
+      "body": {},
+      "parameters": [],
+      "headers": [],
+      "authentication": {
+        "type": "bearer",
+        "token": "{% response 'body', 'req_login', 'b64::JC5hY2Nlc3NfdG9rZW4=::46b', 'always', 60 %}",
+        "disabled": false
+      },
+      "metaSortKey": -1704067100000,
+      "isPrivate": false,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global",
+      "_type": "request"
+    },
+    {
+      "_id": "req_citas_create",
+      "parentId": "fld_citas",
+      "modified": 1704067200000,
+      "created": 1704067200000,
+      "url": "{{ _.base_url }}/api/citas",
+      "name": "Create Cita",
+      "description": "Crea una nueva cita",
+      "method": "POST",
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"fecha\": \"2025-01-15T10:00:00\",\n  \"motivo\": \"Revision general\",\n  \"id_paciente\": 1,\n  \"id_dentista\": 1\n}"
+      },
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "authentication": {
+        "type": "bearer",
+        "token": "{% response 'body', 'req_login', 'b64::JC5hY2Nlc3NfdG9rZW4=::46b', 'always', 60 %}",
+        "disabled": false
+      },
+      "metaSortKey": -1704067000000,
+      "isPrivate": false,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global",
+      "_type": "request"
+    },
+    {
+      "_id": "req_citas_update",
+      "parentId": "fld_citas",
+      "modified": 1704067200000,
+      "created": 1704067200000,
+      "url": "{{ _.base_url }}/api/citas/1",
+      "name": "Update Cita",
+      "description": "Actualiza una cita existente",
+      "method": "PUT",
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"fecha\": \"2025-01-15T14:30:00\",\n  \"motivo\": \"Limpieza dental\",\n  \"id_paciente\": 1,\n  \"id_dentista\": 1\n}"
+      },
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "authentication": {
+        "type": "bearer",
+        "token": "{% response 'body', 'req_login', 'b64::JC5hY2Nlc3NfdG9rZW4=::46b', 'always', 60 %}",
+        "disabled": false
+      },
+      "metaSortKey": -1704066900000,
+      "isPrivate": false,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global",
+      "_type": "request"
+    },
+    {
+      "_id": "req_citas_delete",
+      "parentId": "fld_citas",
+      "modified": 1704067200000,
+      "created": 1704067200000,
+      "url": "{{ _.base_url }}/api/citas/1",
+      "name": "Delete Cita",
+      "description": "Elimina una cita",
+      "method": "DELETE",
+      "body": {},
+      "parameters": [],
+      "headers": [],
+      "authentication": {
+        "type": "bearer",
+        "token": "{% response 'body', 'req_login', 'b64::JC5hY2Nlc3NfdG9rZW4=::46b', 'always', 60 %}",
+        "disabled": false
+      },
+      "metaSortKey": -1704066800000,
+      "isPrivate": false,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global",
+      "_type": "request"
+    },
+    {
+      "_id": "req_citas_by_paciente",
+      "parentId": "fld_citas",
+      "modified": 1704067200000,
+      "created": 1704067200000,
+      "url": "{{ _.base_url }}/api/citas/paciente/1",
+      "name": "Citas by Paciente",
+      "description": "Obtiene todas las citas de un paciente",
+      "method": "GET",
+      "body": {},
+      "parameters": [],
+      "headers": [],
+      "authentication": {
+        "type": "bearer",
+        "token": "{% response 'body', 'req_login', 'b64::JC5hY2Nlc3NfdG9rZW4=::46b', 'always', 60 %}",
+        "disabled": false
+      },
+      "metaSortKey": -1704066700000,
+      "isPrivate": false,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global",
+      "_type": "request"
+    },
+    {
+      "_id": "req_citas_by_dentista",
+      "parentId": "fld_citas",
+      "modified": 1704067200000,
+      "created": 1704067200000,
+      "url": "{{ _.base_url }}/api/citas/dentista/1",
+      "name": "Citas by Dentista",
+      "description": "Obtiene todas las citas de un dentista",
+      "method": "GET",
+      "body": {},
+      "parameters": [],
+      "headers": [],
+      "authentication": {
+        "type": "bearer",
+        "token": "{% response 'body', 'req_login', 'b64::JC5hY2Nlc3NfdG9rZW4=::46b', 'always', 60 %}",
+        "disabled": false
+      },
+      "metaSortKey": -1704066600000,
+      "isPrivate": false,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global",
+      "_type": "request"
+    },
+    {
+      "_id": "req_citas_rango",
+      "parentId": "fld_citas",
+      "modified": 1704067200000,
+      "created": 1704067200000,
+      "url": "{{ _.base_url }}/api/citas/rango",
+      "name": "Citas en Rango de Fechas",
+      "description": "Obtiene citas entre dos fechas",
+      "method": "GET",
+      "body": {},
+      "parameters": [
+        {
+          "name": "inicio",
+          "value": "2025-01-01T00:00:00",
+          "description": "Fecha inicio (yyyy-MM-ddTHH:mm:ss)"
+        },
+        {
+          "name": "fin",
+          "value": "2025-12-31T23:59:59",
+          "description": "Fecha fin (yyyy-MM-ddTHH:mm:ss)"
+        }
+      ],
+      "headers": [],
+      "authentication": {
+        "type": "bearer",
+        "token": "{% response 'body', 'req_login', 'b64::JC5hY2Nlc3NfdG9rZW4=::46b', 'always', 60 %}",
+        "disabled": false
+      },
+      "metaSortKey": -1704066500000,
+      "isPrivate": false,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global",
+      "_type": "request"
+    },
+    {
+      "_id": "req_citas_futuras_paciente",
+      "parentId": "fld_citas",
+      "modified": 1704067200000,
+      "created": 1704067200000,
+      "url": "{{ _.base_url }}/api/citas/paciente/1/futuras",
+      "name": "Citas Futuras Paciente",
+      "description": "Obtiene las proximas citas de un paciente",
+      "method": "GET",
+      "body": {},
+      "parameters": [],
+      "headers": [],
+      "authentication": {
+        "type": "bearer",
+        "token": "{% response 'body', 'req_login', 'b64::JC5hY2Nlc3NfdG9rZW4=::46b', 'always', 60 %}",
+        "disabled": false
+      },
+      "metaSortKey": -1704066400000,
+      "isPrivate": false,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global",
+      "_type": "request"
     }
   ]
 }
