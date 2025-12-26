@@ -1,0 +1,559 @@
+{
+  "_type": "export",
+  "__export_format": 4,
+  "__export_date": "2024-01-01T00:00:00.000Z",
+  "__export_source": "insomnia.desktop.app:v2023.5.8",
+  "resources": [
+    {
+      "_id": "wrk_clinica",
+      "parentId": null,
+      "modified": 1704067200000,
+      "created": 1704067200000,
+      "name": "Clinica Dental API",
+      "description": "API REST para sistema de gestion de clinica dental",
+      "scope": "collection",
+      "_type": "workspace"
+    },
+    {
+      "_id": "env_base",
+      "parentId": "wrk_clinica",
+      "modified": 1704067200000,
+      "created": 1704067200000,
+      "name": "Base Environment",
+      "data": {},
+      "dataPropertyOrder": null,
+      "color": null,
+      "isPrivate": false,
+      "metaSortKey": 1704067200000,
+      "_type": "environment"
+    },
+    {
+      "_id": "env_local",
+      "parentId": "env_base",
+      "modified": 1704067200000,
+      "created": 1704067200000,
+      "name": "Local",
+      "data": {
+        "base_url": "http://localhost:8080",
+        "username": "admin",
+        "password": "admin123"
+      },
+      "dataPropertyOrder": {
+        "&": ["base_url", "username", "password"]
+      },
+      "color": "#7ED321",
+      "isPrivate": false,
+      "metaSortKey": 1704067200001,
+      "_type": "environment"
+    },
+    {
+      "_id": "env_docker",
+      "parentId": "env_base",
+      "modified": 1704067200000,
+      "created": 1704067200000,
+      "name": "Docker",
+      "data": {
+        "base_url": "http://localhost:8080",
+        "username": "admin",
+        "password": "admin123"
+      },
+      "dataPropertyOrder": {
+        "&": ["base_url", "username", "password"]
+      },
+      "color": "#2196F3",
+      "isPrivate": false,
+      "metaSortKey": 1704067200002,
+      "_type": "environment"
+    },
+    {
+      "_id": "env_production",
+      "parentId": "env_base",
+      "modified": 1704067200000,
+      "created": 1704067200000,
+      "name": "Production",
+      "data": {
+        "base_url": "https://api.tudominio.com",
+        "username": "",
+        "password": ""
+      },
+      "dataPropertyOrder": {
+        "&": ["base_url", "username", "password"]
+      },
+      "color": "#F44336",
+      "isPrivate": false,
+      "metaSortKey": 1704067200003,
+      "_type": "environment"
+    },
+    {
+      "_id": "fld_auth",
+      "parentId": "wrk_clinica",
+      "modified": 1704067200000,
+      "created": 1704067200000,
+      "name": "Auth",
+      "description": "Endpoints de autenticacion JWT",
+      "environment": {},
+      "environmentPropertyOrder": null,
+      "metaSortKey": -1704067200000,
+      "_type": "request_group"
+    },
+    {
+      "_id": "fld_dentistas",
+      "parentId": "wrk_clinica",
+      "modified": 1704067200000,
+      "created": 1704067200000,
+      "name": "Dentistas",
+      "description": "CRUD de dentistas",
+      "environment": {},
+      "environmentPropertyOrder": null,
+      "metaSortKey": -1704067100000,
+      "_type": "request_group"
+    },
+    {
+      "_id": "fld_pacientes",
+      "parentId": "wrk_clinica",
+      "modified": 1704067200000,
+      "created": 1704067200000,
+      "name": "Pacientes",
+      "description": "CRUD de pacientes",
+      "environment": {},
+      "environmentPropertyOrder": null,
+      "metaSortKey": -1704067000000,
+      "_type": "request_group"
+    },
+    {
+      "_id": "req_register",
+      "parentId": "fld_auth",
+      "modified": 1704067200000,
+      "created": 1704067200000,
+      "url": "{{ _.base_url }}/api/auth/register",
+      "name": "1. Register User",
+      "description": "Registra un nuevo usuario en el sistema",
+      "method": "POST",
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"username\": \"{{ _.username }}\",\n  \"password\": \"{{ _.password }}\",\n  \"email\": \"admin@clinica.com\",\n  \"nombre\": \"Admin\",\n  \"apellido\": \"Sistema\",\n  \"rol\": \"ROLE_ADMIN\"\n}"
+      },
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "authentication": {},
+      "metaSortKey": -1704067200000,
+      "isPrivate": false,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global",
+      "_type": "request"
+    },
+    {
+      "_id": "req_login",
+      "parentId": "fld_auth",
+      "modified": 1704067200000,
+      "created": 1704067200000,
+      "url": "{{ _.base_url }}/api/auth/login",
+      "name": "2. Login (Get Token)",
+      "description": "Autentica usuario y obtiene token JWT. El token se guarda automaticamente.",
+      "method": "POST",
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"username\": \"{{ _.username }}\",\n  \"password\": \"{{ _.password }}\"\n}"
+      },
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "authentication": {},
+      "metaSortKey": -1704067100000,
+      "isPrivate": false,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global",
+      "_type": "request"
+    },
+    {
+      "_id": "req_validate",
+      "parentId": "fld_auth",
+      "modified": 1704067200000,
+      "created": 1704067200000,
+      "url": "{{ _.base_url }}/api/auth/validate",
+      "name": "3. Validate Token",
+      "description": "Valida si un token JWT es valido",
+      "method": "POST",
+      "body": {},
+      "parameters": [
+        {
+          "name": "token",
+          "value": "{% response 'body', 'req_login', 'b64::JC5hY2Nlc3NfdG9rZW4=::46b', 'always', 60 %}",
+          "description": "Token JWT a validar"
+        }
+      ],
+      "headers": [],
+      "authentication": {},
+      "metaSortKey": -1704067000000,
+      "isPrivate": false,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global",
+      "_type": "request"
+    },
+    {
+      "_id": "req_dentistas_list",
+      "parentId": "fld_dentistas",
+      "modified": 1704067200000,
+      "created": 1704067200000,
+      "url": "{{ _.base_url }}/api/dentista",
+      "name": "List Dentistas",
+      "description": "Obtiene lista paginada de dentistas",
+      "method": "GET",
+      "body": {},
+      "parameters": [
+        {
+          "name": "page",
+          "value": "0",
+          "description": "Numero de pagina (0-indexed)"
+        },
+        {
+          "name": "size",
+          "value": "10",
+          "description": "Elementos por pagina"
+        },
+        {
+          "name": "sort",
+          "value": "id",
+          "description": "Campo de ordenamiento"
+        },
+        {
+          "name": "direction",
+          "value": "asc",
+          "description": "Direccion (asc/desc)"
+        }
+      ],
+      "headers": [],
+      "authentication": {
+        "type": "bearer",
+        "token": "{% response 'body', 'req_login', 'b64::JC5hY2Nlc3NfdG9rZW4=::46b', 'always', 60 %}",
+        "disabled": false
+      },
+      "metaSortKey": -1704067200000,
+      "isPrivate": false,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global",
+      "_type": "request"
+    },
+    {
+      "_id": "req_dentistas_get",
+      "parentId": "fld_dentistas",
+      "modified": 1704067200000,
+      "created": 1704067200000,
+      "url": "{{ _.base_url }}/api/dentista/1",
+      "name": "Get Dentista by ID",
+      "description": "Obtiene un dentista por su ID",
+      "method": "GET",
+      "body": {},
+      "parameters": [],
+      "headers": [],
+      "authentication": {
+        "type": "bearer",
+        "token": "{% response 'body', 'req_login', 'b64::JC5hY2Nlc3NfdG9rZW4=::46b', 'always', 60 %}",
+        "disabled": false
+      },
+      "metaSortKey": -1704067100000,
+      "isPrivate": false,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global",
+      "_type": "request"
+    },
+    {
+      "_id": "req_dentistas_create",
+      "parentId": "fld_dentistas",
+      "modified": 1704067200000,
+      "created": 1704067200000,
+      "url": "{{ _.base_url }}/api/dentista",
+      "name": "Create Dentista",
+      "description": "Crea un nuevo dentista",
+      "method": "POST",
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"nombre\": \"Juan\",\n  \"apellido\": \"Perez\",\n  \"telefono\": \"123456789\",\n  \"especialidad\": \"ORTODONCIA\"\n}"
+      },
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "authentication": {
+        "type": "bearer",
+        "token": "{% response 'body', 'req_login', 'b64::JC5hY2Nlc3NfdG9rZW4=::46b', 'always', 60 %}",
+        "disabled": false
+      },
+      "metaSortKey": -1704067000000,
+      "isPrivate": false,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global",
+      "_type": "request"
+    },
+    {
+      "_id": "req_dentistas_update",
+      "parentId": "fld_dentistas",
+      "modified": 1704067200000,
+      "created": 1704067200000,
+      "url": "{{ _.base_url }}/api/dentista/1",
+      "name": "Update Dentista",
+      "description": "Actualiza un dentista existente",
+      "method": "PUT",
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"nombre\": \"Juan Carlos\",\n  \"apellido\": \"Perez Lopez\",\n  \"telefono\": \"987654321\",\n  \"especialidad\": \"ENDODONCIA\"\n}"
+      },
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "authentication": {
+        "type": "bearer",
+        "token": "{% response 'body', 'req_login', 'b64::JC5hY2Nlc3NfdG9rZW4=::46b', 'always', 60 %}",
+        "disabled": false
+      },
+      "metaSortKey": -1704066900000,
+      "isPrivate": false,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global",
+      "_type": "request"
+    },
+    {
+      "_id": "req_dentistas_delete",
+      "parentId": "fld_dentistas",
+      "modified": 1704067200000,
+      "created": 1704067200000,
+      "url": "{{ _.base_url }}/api/dentista/1",
+      "name": "Delete Dentista",
+      "description": "Elimina un dentista",
+      "method": "DELETE",
+      "body": {},
+      "parameters": [],
+      "headers": [],
+      "authentication": {
+        "type": "bearer",
+        "token": "{% response 'body', 'req_login', 'b64::JC5hY2Nlc3NfdG9rZW4=::46b', 'always', 60 %}",
+        "disabled": false
+      },
+      "metaSortKey": -1704066800000,
+      "isPrivate": false,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global",
+      "_type": "request"
+    },
+    {
+      "_id": "req_pacientes_list",
+      "parentId": "fld_pacientes",
+      "modified": 1704067200000,
+      "created": 1704067200000,
+      "url": "{{ _.base_url }}/api/pacientes",
+      "name": "List Pacientes",
+      "description": "Obtiene lista paginada de pacientes",
+      "method": "GET",
+      "body": {},
+      "parameters": [
+        {
+          "name": "page",
+          "value": "0",
+          "description": "Numero de pagina (0-indexed)"
+        },
+        {
+          "name": "size",
+          "value": "10",
+          "description": "Elementos por pagina"
+        },
+        {
+          "name": "sort",
+          "value": "id",
+          "description": "Campo de ordenamiento"
+        },
+        {
+          "name": "direction",
+          "value": "asc",
+          "description": "Direccion (asc/desc)"
+        }
+      ],
+      "headers": [],
+      "authentication": {
+        "type": "bearer",
+        "token": "{% response 'body', 'req_login', 'b64::JC5hY2Nlc3NfdG9rZW4=::46b', 'always', 60 %}",
+        "disabled": false
+      },
+      "metaSortKey": -1704067200000,
+      "isPrivate": false,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global",
+      "_type": "request"
+    },
+    {
+      "_id": "req_pacientes_get",
+      "parentId": "fld_pacientes",
+      "modified": 1704067200000,
+      "created": 1704067200000,
+      "url": "{{ _.base_url }}/api/pacientes/1",
+      "name": "Get Paciente by ID",
+      "description": "Obtiene un paciente por su ID",
+      "method": "GET",
+      "body": {},
+      "parameters": [],
+      "headers": [],
+      "authentication": {
+        "type": "bearer",
+        "token": "{% response 'body', 'req_login', 'b64::JC5hY2Nlc3NfdG9rZW4=::46b', 'always', 60 %}",
+        "disabled": false
+      },
+      "metaSortKey": -1704067100000,
+      "isPrivate": false,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global",
+      "_type": "request"
+    },
+    {
+      "_id": "req_pacientes_create",
+      "parentId": "fld_pacientes",
+      "modified": 1704067200000,
+      "created": 1704067200000,
+      "url": "{{ _.base_url }}/api/pacientes",
+      "name": "Create Paciente",
+      "description": "Crea un nuevo paciente",
+      "method": "POST",
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"nombre\": \"Maria\",\n  \"apellido\": \"Garcia\",\n  \"telefono\": \"555123456\",\n  \"email\": \"maria@email.com\",\n  \"id_dentista\": 1\n}"
+      },
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "authentication": {
+        "type": "bearer",
+        "token": "{% response 'body', 'req_login', 'b64::JC5hY2Nlc3NfdG9rZW4=::46b', 'always', 60 %}",
+        "disabled": false
+      },
+      "metaSortKey": -1704067000000,
+      "isPrivate": false,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global",
+      "_type": "request"
+    },
+    {
+      "_id": "req_pacientes_update",
+      "parentId": "fld_pacientes",
+      "modified": 1704067200000,
+      "created": 1704067200000,
+      "url": "{{ _.base_url }}/api/pacientes/1",
+      "name": "Update Paciente",
+      "description": "Actualiza un paciente existente",
+      "method": "PUT",
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"nombre\": \"Maria Elena\",\n  \"apellido\": \"Garcia Lopez\",\n  \"telefono\": \"555987654\",\n  \"email\": \"maria.elena@email.com\",\n  \"id_dentista\": 1\n}"
+      },
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "authentication": {
+        "type": "bearer",
+        "token": "{% response 'body', 'req_login', 'b64::JC5hY2Nlc3NfdG9rZW4=::46b', 'always', 60 %}",
+        "disabled": false
+      },
+      "metaSortKey": -1704066900000,
+      "isPrivate": false,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global",
+      "_type": "request"
+    },
+    {
+      "_id": "req_pacientes_delete",
+      "parentId": "fld_pacientes",
+      "modified": 1704067200000,
+      "created": 1704067200000,
+      "url": "{{ _.base_url }}/api/pacientes/1",
+      "name": "Delete Paciente",
+      "description": "Elimina un paciente",
+      "method": "DELETE",
+      "body": {},
+      "parameters": [],
+      "headers": [],
+      "authentication": {
+        "type": "bearer",
+        "token": "{% response 'body', 'req_login', 'b64::JC5hY2Nlc3NfdG9rZW4=::46b', 'always', 60 %}",
+        "disabled": false
+      },
+      "metaSortKey": -1704066800000,
+      "isPrivate": false,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global",
+      "_type": "request"
+    }
+  ]
+}
