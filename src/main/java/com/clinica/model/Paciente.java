@@ -6,8 +6,11 @@ import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
 import com.clinica.model.dto.PacienteRequest;
+import com.clinica.model.enums.EstadoEntidad;
 
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -41,6 +44,10 @@ public class Paciente {
 	@ManyToOne
 	@JoinColumn(name = "dentista_id")
 	private Dentista dentista;
+
+	@Enumerated(EnumType.STRING)
+	@Builder.Default
+	private EstadoEntidad estado = EstadoEntidad.ACTIVO;
 
 	@CreationTimestamp
 	private LocalDateTime createdAt;

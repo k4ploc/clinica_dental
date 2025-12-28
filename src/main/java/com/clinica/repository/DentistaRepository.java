@@ -9,6 +9,7 @@ import org.springframework.stereotype.Repository;
 
 import com.clinica.model.Dentista;
 import com.clinica.model.enums.Especialidad;
+import com.clinica.model.enums.EstadoEntidad;
 
 import java.util.List;
 import java.util.Optional;
@@ -55,4 +56,20 @@ public interface DentistaRepository extends JpaRepository<Dentista, Long> {
      * Verifica si existe un dentista con el teléfono dado.
      */
     boolean existsByTelefono(String telefono);
+
+    /**
+     * Obtiene dentistas activos con paginación.
+     */
+    Page<Dentista> findByEstado(EstadoEntidad estado, Pageable pageable);
+
+    /**
+     * Obtiene un dentista activo por ID con sus pacientes.
+     */
+    @Query("SELECT DISTINCT d FROM Dentista d LEFT JOIN FETCH d.pacientes WHERE d.id = :id AND d.estado = :estado")
+    Optional<Dentista> findByIdAndEstadoWithPacientes(@Param("id") Long id, @Param("estado") EstadoEntidad estado);
+
+    /**
+     * Busca dentistas activos por especialidad.
+     */
+    List<Dentista> findByEspecialidadAndEstado(Especialidad especialidad, EstadoEntidad estado);
 }

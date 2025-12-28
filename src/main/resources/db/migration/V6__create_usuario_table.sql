@@ -36,16 +36,3 @@ INSERT INTO rol (nombre, descripcion) VALUES
     ('ROLE_DENTISTA', 'Dentista con acceso a gestión de pacientes y citas'),
     ('ROLE_RECEPCIONISTA', 'Recepcionista con acceso a citas y pacientes'),
     ('ROLE_PACIENTE', 'Paciente con acceso limitado a su información');
-
--- Insertar usuarios de demostración (contraseñas hasheadas con BCrypt)
--- admin123, dentista123, paciente123
-INSERT INTO usuario (username, password, email, nombre, apellido, activo) VALUES
-    ('admin', '$2a$10$N9qo8uLOickgx2ZMRZoMye1XdBkQZz.3u5kLgWbJmvwLKEYCHr7hu', 'admin@clinica.com', 'Administrador', 'Sistema', TRUE),
-    ('dentista', '$2a$10$dXJ3SW6G7P50lGmMkkmwe.20cQQubK3.HZWzG3YB1tlRy.fqvM/BG', 'dentista@clinica.com', 'Dr. Juan', 'Pérez', TRUE),
-    ('paciente', '$2a$10$Hf4MhxYN6/h6hLZX3J.OqOxMfQy7p0CkP3Y6VQ3AZB.6SN9MkBHfi', 'paciente@clinica.com', 'María', 'García', TRUE);
-
--- Asignar roles a usuarios de demostración
-INSERT INTO usuario_rol (usuario_id, rol_id) VALUES
-    ((SELECT id FROM usuario WHERE username = 'admin'), (SELECT id FROM rol WHERE nombre = 'ROLE_ADMIN')),
-    ((SELECT id FROM usuario WHERE username = 'dentista'), (SELECT id FROM rol WHERE nombre = 'ROLE_DENTISTA')),
-    ((SELECT id FROM usuario WHERE username = 'paciente'), (SELECT id FROM rol WHERE nombre = 'ROLE_PACIENTE'));

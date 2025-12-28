@@ -19,6 +19,7 @@ import com.clinica.model.Dentista;
 import com.clinica.model.Paciente;
 import com.clinica.model.dto.CitaRequest;
 import com.clinica.model.dto.CitaResponse;
+import com.clinica.model.enums.EstadoCita;
 import com.clinica.repository.CitaRepository;
 import com.clinica.repository.DentistaRepository;
 import com.clinica.repository.PacienteRepository;
@@ -44,9 +45,9 @@ public class CitaService {
     @Transactional(readOnly = true)
     @Cacheable(value = "citas")
     public List<CitaResponse> listarCitas() {
-        log.debug("Obteniendo lista completa de citas");
-        var lista = citaRepository.findAllWithRelations();
-        log.info("Se encontraron {} citas", lista.size());
+        log.debug("Obteniendo lista completa de citas activas");
+        var lista = citaRepository.findAllActiveWithRelations(EstadoCita.CANCELADA);
+        log.info("Se encontraron {} citas activas", lista.size());
         return lista.stream().map(this::toResponse).collect(Collectors.toList());
     }
 
@@ -54,7 +55,7 @@ public class CitaService {
     public Page<CitaResponse> listarCitasPaginadas(Pageable pageable) {
         log.debug("Obteniendo citas paginadas: pagina {}, tamanio {}",
                 pageable.getPageNumber(), pageable.getPageSize());
-        Page<Cita> page = citaRepository.findAll(pageable);
+        Page<Cita> page = citaRepository.findAllByEstadoNot(EstadoCita.CANCELADA, pageable);
         log.info("Se retornan {} citas de la pagina {} (total: {} registros)",
                 page.getNumberOfElements(), page.getNumber(), page.getTotalElements());
         return page.map(this::toResponse);
@@ -169,13 +170,42 @@ public class CitaService {
     @Transactional
     @CacheEvict(value = "citas", allEntries = true)
     public void eliminarCita(Long id) {
-        log.info("Iniciando eliminacion de cita con ID: {}", id);
-        if (!citaRepository.existsById(id)) {
-            log.warn("Intento de eliminar cita no existente con ID: {}", id);
-            throw new ResourceNotFoundException("Cita", id);
+        log.info("Iniciando cancelacion (baja logica) de cita con ID: {}", id);
+        Cita cita = citaRepository.findById(id)
+                .orElseThrow(() -> {
+                    log.warn("Intento de cancelar cita no existente con ID: {}", id);
+                    return new ResourceNotFoundException("Cita", id);
+                });
+
+        if (cita.getEstado() == EstadoCita.CANCELADA) {
+            log.warn("La cita con ID: {} ya esta cancelada", id);
+            throw new IllegalStateException("La cita ya esta cancelada");
         }
-        citaRepository.deleteById(id);
-        log.info("Cita eliminada exitosamente con ID: {}", id);
+
+        cita.setEstado(EstadoCita.CANCELADA);
+        citaRepository.save(cita);
+        log.info("Cita cancelada exitosamente (baja logica) con ID: {}", id);
+    }
+
+    @Transactional
+    @CacheEvict(value = "citas", allEntries = true)
+    public CitaResponse cambiarEstado(Long id, EstadoCita nuevoEstado) {
+        log.info("Cambiando estado de cita ID: {} a {}", id, nuevoEstado);
+        Cita cita = citaRepository.findByIdWithRelations(id)
+                .orElseThrow(() -> {
+                    log.warn("Cita no encontrada con ID: {}", id);
+                    return new ResourceNotFoundException("Cita", id);
+                });
+
+        if (cita.getEstado() == EstadoCita.CANCELADA) {
+            log.warn("No se puede cambiar estado de cita cancelada ID: {}", id);
+            throw new IllegalStateException("No se puede modificar una cita cancelada");
+        }
+
+        cita.setEstado(nuevoEstado);
+        Cita actualizada = citaRepository.save(cita);
+        log.info("Estado de cita ID: {} cambiado a {}", id, nuevoEstado);
+        return toResponse(actualizada);
     }
 
     // === Metodos adicionales de consulta ===
@@ -212,6 +242,50 @@ public class CitaService {
         return citas.stream().map(this::toResponse).collect(Collectors.toList());
     }
 
+    // ==================== MÉTODOS ADMIN ====================
+
+    /**
+     * Lista TODAS las citas (sin filtro de estado) - Solo admin.
+     */
+    @Transactional(readOnly = true)
+    public Page<CitaResponse> listarTodasCitas(Pageable pageable) {
+        log.debug("Admin: Obteniendo todas las citas paginadas");
+        Page<Cita> page = citaRepository.findAll(pageable);
+        log.info("Admin: Se retornan {} citas de {} total", page.getNumberOfElements(), page.getTotalElements());
+        return page.map(this::toResponse);
+    }
+
+    /**
+     * Lista citas por estado específico - Solo admin.
+     */
+    @Transactional(readOnly = true)
+    public Page<CitaResponse> listarCitasPorEstado(EstadoCita estado, Pageable pageable) {
+        log.debug("Admin: Obteniendo citas con estado: {}", estado);
+        Page<Cita> page = citaRepository.findByEstado(estado, pageable);
+        log.info("Admin: Se retornan {} citas con estado {}", page.getNumberOfElements(), estado);
+        return page.map(this::toResponse);
+    }
+
+    /**
+     * Cambia el estado de una cita (permite reactivar canceladas) - Solo admin.
+     */
+    @Transactional
+    @CacheEvict(value = "citas", allEntries = true)
+    public CitaResponse cambiarEstadoAdmin(Long id, EstadoCita nuevoEstado) {
+        log.info("Admin: Cambiando estado de cita {} a {}", id, nuevoEstado);
+        Cita cita = citaRepository.findByIdWithRelations(id)
+                .orElseThrow(() -> {
+                    log.warn("Admin: Cita no encontrada con ID: {}", id);
+                    return new ResourceNotFoundException("Cita", id);
+                });
+
+        EstadoCita estadoAnterior = cita.getEstado();
+        cita.setEstado(nuevoEstado);
+        Cita actualizada = citaRepository.save(cita);
+        log.info("Admin: Estado de cita {} cambiado de {} a {}", id, estadoAnterior, nuevoEstado);
+        return toResponse(actualizada);
+    }
+
     // === Mapper ===
 
     private CitaResponse toResponse(Cita cita) {
@@ -242,6 +316,7 @@ public class CitaService {
             cita.getId(),
             cita.getFecha(),
             cita.getMotivo(),
+            cita.getEstado() != null ? cita.getEstado().name() : null,
             pacienteInfo,
             dentistaInfo,
             cita.getCreatedAt(),

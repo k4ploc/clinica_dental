@@ -1,7 +1,7 @@
 package com.clinica.model.enums;
 
 public enum Especialidad {
-	DENTISTA, CIRUJANO, ORTODONCISTA;
+	ORTODONCIA, ENDODONCIA, PERIODONCIA,CIRUGIA,ODONTOPEDIATRIA,GENERAL;
 
 	public static Especialidad from(String especialidad) {
 

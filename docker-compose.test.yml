@@ -1,0 +1,50 @@
+# 📝 Docker Compose para Testing
+# Uso: docker-compose -f docker-compose.test.yml up --abort-on-container-exit
+# O: docker-compose -f docker-compose.test.yml run test mvn test
+
+version: '3.9'
+
+services:
+  test:
+    image: maven:3.9.9-eclipse-temurin-21-alpine
+    container_name: clinica_test
+    working_dir: /app
+    volumes:
+      - ./:/app:delegated
+      - m2_test_cache:/root/.m2/repository
+    environment:
+      - SPRING_PROFILES_ACTIVE=test
+      - SPRING_DATASOURCE_URL=jdbc:h2:mem:testdb
+      - SPRING_DATASOURCE_USERNAME=sa
+      - SPRING_DATASOURCE_PASSWORD=
+      - SPRING_H2_CONSOLE_ENABLED=true
+    networks:
+      - clinica_test_network
+    command: mvn clean verify
+    depends_on:
+      db_test:
+        condition: service_healthy
+
+  db_test:
+    image: postgres:15-alpine
+    container_name: postgres_clinica_test
+    environment:
+      - POSTGRES_USER=test_user
+      - POSTGRES_PASSWORD=test_password
+      - POSTGRES_DB=clinica_test_db
+    ports:
+      - "5433:5432"
+    networks:
+      - clinica_test_network
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U test_user" ]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
+networks:
+  clinica_test_network:
+    driver: bridge
+
+volumes:
+  m2_test_cache:

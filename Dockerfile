@@ -4,6 +4,11 @@
 # ============================================================================
 FROM maven:3.9.9-eclipse-temurin-21-alpine AS builder
 
+# Build arguments
+ARG BUILD_DATE
+ARG VCS_REF
+ARG VERSION=0.0.1
+
 WORKDIR /app
 
 # Cache Maven dependencies (using BuildKit mount cache)
@@ -28,6 +33,9 @@ RUN addgroup -S appgrp && adduser -S appuser -G appgrp
 COPY --from=builder /app/target/clinica-0.0.1-SNAPSHOT.jar app.jar
 RUN chown appuser:appgrp /app/app.jar
 
+# Create logs directory with proper permissions (before switching to non-root user)
+RUN mkdir -p /app/logs && chown appuser:appgrp /app/logs
+
 # Switch to non-root user
 USER appuser
 
@@ -43,4 +51,3 @@ HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
 
 # Run application
 ENTRYPOINT ["sh", "-c", "java ${JAVA_OPTS} -jar app.jar"]
-

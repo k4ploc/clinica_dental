@@ -92,7 +92,7 @@ public class DentistaController {
             @Valid @RequestBody DentistaRequest request) {
         log.debug("POST /dentista - Creando nuevo dentista: {} {}", request.nombre(), request.apellido());
         Dentista newDentista = service.createDentista(request);
-        DentistaResponse response = new DentistaResponse(newDentista.getId(), newDentista.getNombre(), newDentista.getApellido(), newDentista.getTelefono(), newDentista.getEspecialidad() != null ? newDentista.getEspecialidad().name() : null, null);
+        DentistaResponse response = new DentistaResponse(newDentista.getId(), newDentista.getNombre(), newDentista.getApellido(), newDentista.getTelefono(), newDentista.getEspecialidad() != null ? newDentista.getEspecialidad().name() : null, null, newDentista.getEstado());
         log.info("POST /dentista - Dentista creado exitosamente con ID: {}", newDentista.getId());
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }

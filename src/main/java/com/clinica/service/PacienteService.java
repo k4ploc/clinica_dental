@@ -18,6 +18,7 @@ import com.clinica.errors.DuplicateException;
 import com.clinica.model.Dentista;
 import com.clinica.model.Paciente;
 import com.clinica.model.dto.PacienteRequest;
+import com.clinica.model.enums.EstadoEntidad;
 import com.clinica.repository.DentistaRepository;
 import com.clinica.repository.PacienteRepository;
 
@@ -48,10 +49,10 @@ public class PacienteService {
 
     @Transactional(readOnly = true)
     public Page<PacienteResponse> listarPacientesPaginados(Pageable pageable) {
-        log.debug("Obteniendo pacientes paginados: página {}, tamaño {}, ordenamiento {}",
+        log.debug("Obteniendo pacientes activos paginados: página {}, tamaño {}, ordenamiento {}",
                 pageable.getPageNumber(), pageable.getPageSize(), pageable.getSort());
-        Page<Paciente> page = repository.findAll(pageable);
-        log.info("Se retornan {} pacientes de la página {} (total: {} registros)",
+        Page<Paciente> page = repository.findByEstado(EstadoEntidad.ACTIVO, pageable);
+        log.info("Se retornan {} pacientes activos de la página {} (total: {} registros)",
                 page.getNumberOfElements(), page.getNumber(), page.getTotalElements());
         return page.map(this::toResponse);
     }
@@ -85,15 +86,16 @@ public class PacienteService {
     // Mapea Paciente -> PacienteResponse
     private PacienteResponse toResponse(Paciente p) {
         if (p == null) return null;
-        return new PacienteResponse(p.getId(), p.getNombre(), p.getApellido(), p.getTelefono(), p.getEmail());
+        Long idDentista = p.getDentista() != null ? p.getDentista().getId() : null;
+        return new PacienteResponse(p.getId(), p.getNombre(), p.getApellido(), p.getTelefono(), p.getEmail(), idDentista, p.getEstado());
     }
 
     @Transactional(readOnly = true)
     public PacienteResponse obtenerPaciente(Long id) {
-        log.debug("Buscando paciente con ID: {}", id);
-        Paciente paciente = repository.findById(id)
+        log.debug("Buscando paciente activo con ID: {}", id);
+        Paciente paciente = repository.findByIdAndEstado(id, EstadoEntidad.ACTIVO)
                 .orElseThrow(() -> {
-                    log.warn("Paciente no encontrado con ID: {}", id);
+                    log.warn("Paciente activo no encontrado con ID: {}", id);
                     return new ResourceNotFoundException("Paciente", id);
                 });
         log.info("Paciente encontrado: {} {} (ID: {})", paciente.getNombre(), paciente.getApellido(), id);
@@ -104,9 +106,9 @@ public class PacienteService {
     @CacheEvict(value = "pacientes", allEntries = true)
     public PacienteResponse actualizarPaciente(Long id, PacienteRequest request) {
         log.info("Iniciando actualización de paciente con ID: {}", id);
-        Paciente paciente = repository.findById(id)
+        Paciente paciente = repository.findByIdAndEstado(id, EstadoEntidad.ACTIVO)
                 .orElseThrow(() -> {
-                    log.warn("Paciente a actualizar no encontrado con ID: {}", id);
+                    log.warn("Paciente activo a actualizar no encontrado con ID: {}", id);
                     return new ResourceNotFoundException("Paciente", id);
                 });
 
@@ -141,13 +143,72 @@ public class PacienteService {
     @Transactional
     @CacheEvict(value = "pacientes", allEntries = true)
     public void eliminarPaciente(Long id) {
-        log.info("Iniciando eliminación de paciente con ID: {}", id);
-        if (!repository.existsById(id)) {
-            log.warn("Intento de eliminar paciente no existente con ID: {}", id);
-            throw new ResourceNotFoundException("Paciente", id);
-        }
-        repository.deleteById(id);
-        log.info("Paciente eliminado exitosamente con ID: {}", id);
+        log.info("Iniciando eliminación lógica de paciente con ID: {}", id);
+        Paciente paciente = repository.findByIdAndEstado(id, EstadoEntidad.ACTIVO)
+                .orElseThrow(() -> {
+                    log.warn("Paciente activo no encontrado para eliminar con ID: {}", id);
+                    return new ResourceNotFoundException("Paciente", id);
+                });
+        paciente.setEstado(EstadoEntidad.ELIMINADO);
+        repository.save(paciente);
+        log.info("Paciente eliminado lógicamente con ID: {}", id);
+    }
+
+    // ==================== MÉTODOS ADMIN ====================
+
+    /**
+     * Lista TODOS los pacientes (sin filtro de estado) - Solo admin.
+     */
+    @Transactional(readOnly = true)
+    public Page<PacienteResponse> listarTodosPacientes(Pageable pageable) {
+        log.debug("Admin: Obteniendo todos los pacientes paginados");
+        Page<Paciente> page = repository.findAll(pageable);
+        log.info("Admin: Se retornan {} pacientes de {} total", page.getNumberOfElements(), page.getTotalElements());
+        return page.map(this::toResponse);
+    }
+
+    /**
+     * Lista pacientes por estado específico - Solo admin.
+     */
+    @Transactional(readOnly = true)
+    public Page<PacienteResponse> listarPacientesPorEstado(EstadoEntidad estado, Pageable pageable) {
+        log.debug("Admin: Obteniendo pacientes con estado: {}", estado);
+        Page<Paciente> page = repository.findByEstado(estado, pageable);
+        log.info("Admin: Se retornan {} pacientes con estado {}", page.getNumberOfElements(), estado);
+        return page.map(this::toResponse);
+    }
+
+    /**
+     * Obtiene un paciente por ID sin importar su estado - Solo admin.
+     */
+    @Transactional(readOnly = true)
+    public PacienteResponse obtenerPacienteSinFiltro(Long id) {
+        log.debug("Admin: Buscando paciente con ID: {} (sin filtro de estado)", id);
+        Paciente paciente = repository.findByIdWithDentista(id)
+                .orElseThrow(() -> {
+                    log.warn("Admin: Paciente no encontrado con ID: {}", id);
+                    return new ResourceNotFoundException("Paciente", id);
+                });
+        log.info("Admin: Paciente encontrado con estado: {}", paciente.getEstado());
+        return toResponse(paciente);
+    }
+
+    /**
+     * Cambia el estado de un paciente - Solo admin.
+     */
+    @Transactional
+    @CacheEvict(value = "pacientes", allEntries = true)
+    public PacienteResponse cambiarEstado(Long id, EstadoEntidad nuevoEstado) {
+        log.info("Admin: Cambiando estado de paciente {} a {}", id, nuevoEstado);
+        Paciente paciente = repository.findById(id)
+                .orElseThrow(() -> {
+                    log.warn("Admin: Paciente no encontrado con ID: {}", id);
+                    return new ResourceNotFoundException("Paciente", id);
+                });
+        paciente.setEstado(nuevoEstado);
+        Paciente actualizado = repository.save(paciente);
+        log.info("Admin: Estado de paciente {} cambiado a {}", id, nuevoEstado);
+        return toResponse(actualizado);
     }
 
 }

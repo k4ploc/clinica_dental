@@ -12,6 +12,8 @@ public record CitaResponse(
 
     String motivo,
 
+    String estado,
+
     PacienteInfo paciente,
 
     DentistaInfo dentista,

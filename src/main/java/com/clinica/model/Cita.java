@@ -5,7 +5,11 @@ import java.time.LocalDateTime;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
+import com.clinica.model.enums.EstadoCita;
+
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -40,6 +44,10 @@ public class Cita {
 	private LocalDateTime fecha;
 
 	private String motivo;
+
+	@Enumerated(EnumType.STRING)
+	@Builder.Default
+	private EstadoCita estado = EstadoCita.PROGRAMADA;
 
 	@CreationTimestamp
 	private LocalDateTime createdAt;

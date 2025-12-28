@@ -14,6 +14,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
@@ -24,6 +25,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.clinica.model.dto.CitaRequest;
 import com.clinica.model.dto.CitaResponse;
+import com.clinica.model.enums.EstadoCita;
 import com.clinica.service.CitaService;
 
 import io.swagger.v3.oas.annotations.Operation;
@@ -127,18 +129,38 @@ public class CitaController {
     }
 
     @DeleteMapping("/{id}")
-    @Operation(summary = "Eliminar cita", description = "Elimina una cita del sistema")
+    @Operation(summary = "Cancelar cita", description = "Cancela una cita (baja logica, no se elimina de la base de datos)")
     @ApiResponses(value = {
-        @ApiResponse(responseCode = "204", description = "Cita eliminada exitosamente"),
-        @ApiResponse(responseCode = "404", description = "Cita no encontrada")
+        @ApiResponse(responseCode = "204", description = "Cita cancelada exitosamente"),
+        @ApiResponse(responseCode = "404", description = "Cita no encontrada"),
+        @ApiResponse(responseCode = "400", description = "La cita ya esta cancelada")
     })
     public ResponseEntity<Void> eliminarCita(
             @Parameter(description = "ID de la cita", required = true)
             @PathVariable Long id) {
-        log.debug("DELETE /api/citas/{} - Eliminando cita", id);
+        log.debug("DELETE /api/citas/{} - Cancelando cita (baja logica)", id);
         citaService.eliminarCita(id);
-        log.info("DELETE /api/citas/{} - Cita eliminada exitosamente", id);
+        log.info("DELETE /api/citas/{} - Cita cancelada exitosamente", id);
         return ResponseEntity.noContent().build();
+    }
+
+    @PatchMapping("/{id}/estado")
+    @Operation(summary = "Cambiar estado de cita", description = "Actualiza el estado de una cita")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "Estado actualizado exitosamente"),
+        @ApiResponse(responseCode = "404", description = "Cita no encontrada"),
+        @ApiResponse(responseCode = "400", description = "No se puede modificar una cita cancelada o estado invalido")
+    })
+    public ResponseEntity<CitaResponse> cambiarEstado(
+            @Parameter(description = "ID de la cita", required = true)
+            @PathVariable Long id,
+            @Parameter(description = "Nuevo estado: PROGRAMADA, CONFIRMADA, EN_CURSO, COMPLETADA, CANCELADA", required = true)
+            @RequestParam String estado) {
+        log.debug("PATCH /api/citas/{}/estado - Cambiando estado a {}", id, estado);
+        EstadoCita nuevoEstado = EstadoCita.from(estado);
+        CitaResponse response = citaService.cambiarEstado(id, nuevoEstado);
+        log.info("PATCH /api/citas/{}/estado - Estado cambiado a {}", id, nuevoEstado);
+        return ResponseEntity.ok(response);
     }
 
     // === Endpoints adicionales ===

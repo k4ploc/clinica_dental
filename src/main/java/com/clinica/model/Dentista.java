@@ -8,6 +8,7 @@ import org.hibernate.annotations.UpdateTimestamp;
 
 import com.clinica.model.dto.DentistaRequest;
 import com.clinica.model.enums.Especialidad;
+import com.clinica.model.enums.EstadoEntidad;
 
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Entity;
@@ -41,6 +42,10 @@ public class Dentista {
 	private Especialidad especialidad;
 	@OneToMany(mappedBy = "dentista", cascade = CascadeType.ALL, orphanRemoval = true)
 	private List<Paciente> pacientes;
+
+	@Enumerated(EnumType.STRING)
+	@Builder.Default
+	private EstadoEntidad estado = EstadoEntidad.ACTIVO;
 
 	@CreationTimestamp
 	private LocalDateTime createdAt;

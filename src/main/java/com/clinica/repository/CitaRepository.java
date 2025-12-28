@@ -8,6 +8,7 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import com.clinica.model.Cita;
+import com.clinica.model.enums.EstadoCita;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -27,6 +28,18 @@ public interface CitaRepository extends JpaRepository<Cita, Long> {
      */
     @Query("SELECT c FROM Cita c LEFT JOIN FETCH c.paciente LEFT JOIN FETCH c.dentista")
     List<Cita> findAllWithRelations();
+
+    /**
+     * Obtiene todas las citas activas (no canceladas) con sus relaciones.
+     */
+    @Query("SELECT c FROM Cita c LEFT JOIN FETCH c.paciente LEFT JOIN FETCH c.dentista WHERE c.estado <> :estadoExcluido")
+    List<Cita> findAllActiveWithRelations(@Param("estadoExcluido") EstadoCita estadoExcluido);
+
+    /**
+     * Obtiene citas paginadas excluyendo un estado.
+     */
+    @Query("SELECT c FROM Cita c WHERE c.estado <> :estadoExcluido")
+    Page<Cita> findAllByEstadoNot(@Param("estadoExcluido") EstadoCita estadoExcluido, Pageable pageable);
 
     /**
      * Busca citas por paciente ID.
@@ -75,10 +88,22 @@ public interface CitaRepository extends JpaRepository<Cita, Long> {
     );
 
     /**
-     * Verifica si existe una cita para un dentista en una fecha especifica.
+     * Verifica si existe una cita activa para un dentista en una fecha especifica.
      */
-    @Query("SELECT COUNT(c) > 0 FROM Cita c WHERE c.dentista.id = :dentistaId AND c.fecha = :fecha")
+    @Query("SELECT COUNT(c) > 0 FROM Cita c WHERE c.dentista.id = :dentistaId AND c.fecha = :fecha AND c.estado <> 'CANCELADA'")
     boolean existsByDentistaIdAndFecha(@Param("dentistaId") Long dentistaId, @Param("fecha") LocalDateTime fecha);
+
+    /**
+     * Busca citas activas por paciente ID.
+     */
+    @Query("SELECT c FROM Cita c WHERE c.paciente.id = :pacienteId AND c.estado <> 'CANCELADA'")
+    List<Cita> findActiveByPacienteId(@Param("pacienteId") Long pacienteId);
+
+    /**
+     * Busca citas activas por dentista ID.
+     */
+    @Query("SELECT c FROM Cita c WHERE c.dentista.id = :dentistaId AND c.estado <> 'CANCELADA'")
+    List<Cita> findActiveByDentistaId(@Param("dentistaId") Long dentistaId);
 
     /**
      * Cuenta citas por dentista.
@@ -89,6 +114,11 @@ public interface CitaRepository extends JpaRepository<Cita, Long> {
      * Cuenta citas por paciente.
      */
     long countByPacienteId(Long pacienteId);
+
+    /**
+     * Busca citas por estado con paginación (para admin).
+     */
+    Page<Cita> findByEstado(EstadoCita estado, Pageable pageable);
 
     /**
      * Busca citas futuras de un paciente.

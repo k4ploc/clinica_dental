@@ -1,0 +1,47 @@
+# Version control
+.git
+.gitignore
+.gitattributes
+
+# IDE files
+.vscode/
+.idea/
+.classpath
+.project
+.factorypath
+.settings/
+*.iml
+*.swp
+*.swo
+*~
+
+# Build and runtime
+target/
+*.log
+logs/
+
+# CI/CD
+.github/
+.gitlab-ci.yml
+.circleci/
+
+# Dependencies
+node_modules/
+.npm/
+
+# Documentation
+docs/
+*.md
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Development
+.env
+.env.local
+
+# Maven
+.mvn/
+mvnw
+mvnw.cmd

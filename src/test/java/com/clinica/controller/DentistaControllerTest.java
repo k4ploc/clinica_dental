@@ -1,5 +1,7 @@
 package com.clinica.controller;
 
+import com.clinica.config.JwtAuthenticationFilter;
+import com.clinica.config.JwtService;
 import com.clinica.model.Dentista;
 import com.clinica.model.dto.DentistaRequest;
 import com.clinica.model.dto.DentistaResponse;
@@ -9,13 +11,18 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.http.MediaType;
+import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.security.test.context.support.WithMockUser;
 
 import java.util.List;
+
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
 
 import static org.hamcrest.Matchers.is;
 import static org.mockito.ArgumentMatchers.any;
@@ -23,10 +30,9 @@ import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
-import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
-import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
 
 @WebMvcTest(DentistaController.class)
+@AutoConfigureMockMvc(addFilters = false)
 class DentistaControllerTest {
 
     @Autowired
@@ -34,6 +40,15 @@ class DentistaControllerTest {
 
     @MockitoBean
     private DentistaService dentistaService;
+
+    @MockitoBean
+    private JwtService jwtService;
+
+    @MockitoBean
+    private JwtAuthenticationFilter jwtAuthenticationFilter;
+
+    @MockitoBean
+    private UserDetailsService userDetailsService;
 
     @Autowired
     private ObjectMapper objectMapper;
@@ -48,7 +63,7 @@ class DentistaControllerTest {
                 "Dr. Juan",
                 "Pérez",
                 "1234567890",
-                "DENTISTA"
+                "GENERAL"
         );
 
         dentistaResponse = new DentistaResponse(
@@ -56,8 +71,9 @@ class DentistaControllerTest {
                 "Dr. Juan",
                 "Pérez",
                 "1234567890",
-                "DENTISTA",
-                null
+                "GENERAL",
+                null,
+                com.clinica.model.enums.EstadoEntidad.ACTIVO
         );
 
         dentista = Dentista.builder()
@@ -65,29 +81,29 @@ class DentistaControllerTest {
                 .nombre("Dr. Juan")
                 .apellido("Pérez")
                 .telefono("1234567890")
-                .especialidad(Especialidad.DENTISTA)
+                .especialidad(Especialidad.GENERAL)
+                .estado(com.clinica.model.enums.EstadoEntidad.ACTIVO)
                 .build();
     }
 
     @Test
-    @WithMockUser
     void testGetDentistas() throws Exception {
-        when(dentistaService.getDentistas()).thenReturn(List.of(dentistaResponse));
+        Page<DentistaResponse> page = new PageImpl<>(List.of(dentistaResponse));
+        when(dentistaService.getDentistasPaginados(any(Pageable.class))).thenReturn(page);
 
-        mockMvc.perform(get("/dentista")
+        mockMvc.perform(get("/api/dentista")
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$[0].nombre", is("Dr. Juan")));
+                .andExpect(jsonPath("$.content[0].nombre", is("Dr. Juan")));
 
-        verify(dentistaService).getDentistas();
+        verify(dentistaService).getDentistasPaginados(any(Pageable.class));
     }
 
     @Test
-    @WithMockUser
     void testObtenerDentista_Success() throws Exception {
         when(dentistaService.obtenerDentista(1L)).thenReturn(dentistaResponse);
 
-        mockMvc.perform(get("/dentista/1")
+        mockMvc.perform(get("/api/dentista/1")
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id", is(1)))
@@ -97,25 +113,21 @@ class DentistaControllerTest {
     }
 
     @Test
-    @WithMockUser
     void testObtenerDentista_NotFound() throws Exception {
         when(dentistaService.obtenerDentista(1L))
                 .thenThrow(new RuntimeException("Dentista no encontrado"));
 
-        mockMvc.perform(get("/dentista/1")
+        mockMvc.perform(get("/api/dentista/1")
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isNotFound());
     }
 
     @Test
-    @WithMockUser
     void testCrearDentista_Success() throws Exception {
         when(dentistaService.createDentista(any(DentistaRequest.class)))
                 .thenReturn(dentista);
 
-        mockMvc.perform(post("/dentista")
-                .with(user("testuser"))
-                .with(csrf())
+        mockMvc.perform(post("/api/dentista")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(dentistaRequest)))
                 .andExpect(status().isCreated());
@@ -124,35 +136,29 @@ class DentistaControllerTest {
     }
 
     @Test
-    @WithMockUser
     void testCrearDentista_ValidationError() throws Exception {
         DentistaRequest invalidRequest = new DentistaRequest(
                 "Dr. Juan",
                 "Pérez",
                 "1234567890",
-                "DENTISTA"
+                "GENERAL"
         );
 
         when(dentistaService.createDentista(any(DentistaRequest.class)))
                 .thenReturn(dentista);
 
-        mockMvc.perform(post("/dentista")
-                .with(user("testuser"))
-                .with(csrf())
+        mockMvc.perform(post("/api/dentista")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(invalidRequest)))
                 .andExpect(status().isCreated());
     }
 
     @Test
-    @WithMockUser
     void testActualizarDentista_Success() throws Exception {
         when(dentistaService.actualizarDentista(anyLong(), any(DentistaRequest.class)))
                 .thenReturn(dentistaResponse);
 
-        mockMvc.perform(put("/dentista/1")
-                .with(user("testuser"))
-                .with(csrf())
+        mockMvc.perform(put("/api/dentista/1")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(dentistaRequest)))
                 .andExpect(status().isOk())
@@ -162,13 +168,10 @@ class DentistaControllerTest {
     }
 
     @Test
-    @WithMockUser
     void testEliminarDentista_Success() throws Exception {
         doNothing().when(dentistaService).eliminarDentista(anyLong());
 
-        mockMvc.perform(delete("/dentista/1")
-                .with(user("testuser"))
-                .with(csrf())
+        mockMvc.perform(delete("/api/dentista/1")
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isNoContent());
 
@@ -176,16 +179,12 @@ class DentistaControllerTest {
     }
 
     @Test
-    @WithMockUser
     void testEliminarDentista_NotFound() throws Exception {
         doThrow(new RuntimeException("Dentista no encontrado"))
                 .when(dentistaService).eliminarDentista(anyLong());
 
-        mockMvc.perform(delete("/dentista/1")
-                .with(user("testuser"))
-                .with(csrf())
+        mockMvc.perform(delete("/api/dentista/1")
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isNotFound());
     }
 }
-

@@ -58,6 +58,9 @@ public class SecurityConfig {
 					"/v3/api-docs.yaml"
 				).permitAll()
 
+				// Endpoints de administración - Solo ROLE_ADMIN
+				.requestMatchers("/api/admin/**").hasRole("ADMIN")
+
 				// Cualquier otro request requiere autenticación
 				.anyRequest().authenticated()
 			)

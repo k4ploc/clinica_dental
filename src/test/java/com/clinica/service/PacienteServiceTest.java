@@ -16,6 +16,7 @@ import com.clinica.model.Dentista;
 import com.clinica.model.Paciente;
 import com.clinica.model.dto.PacienteRequest;
 import com.clinica.model.dto.PacienteResponse;
+import com.clinica.model.enums.EstadoEntidad;
 import com.clinica.repository.DentistaRepository;
 import com.clinica.repository.PacienteRepository;
 
@@ -44,6 +45,7 @@ class PacienteServiceTest {
                 .nombre("Dr. Juan")
                 .apellido("Pérez")
                 .telefono("1234567890")
+                .estado(EstadoEntidad.ACTIVO)
                 .build();
 
         pacienteRequest = new PacienteRequest(
@@ -61,6 +63,7 @@ class PacienteServiceTest {
                 .telefono("9876543210")
                 .email("carlos@example.com")
                 .dentista(dentista)
+                .estado(EstadoEntidad.ACTIVO)
                 .build();
     }
 
@@ -75,6 +78,7 @@ class PacienteServiceTest {
         assertNotNull(response);
         assertEquals("Carlos", response.nombre());
         assertEquals("carlos@example.com", response.email());
+        assertEquals(EstadoEntidad.ACTIVO, response.estado());
         verify(pacienteRepository).save(any(Paciente.class));
     }
 
@@ -89,18 +93,19 @@ class PacienteServiceTest {
 
     @Test
     void testObtenerPaciente_Success() {
-        when(pacienteRepository.findById(1L)).thenReturn(Optional.of(paciente));
+        when(pacienteRepository.findByIdAndEstado(1L, EstadoEntidad.ACTIVO)).thenReturn(Optional.of(paciente));
 
         PacienteResponse response = pacienteService.obtenerPaciente(1L);
 
         assertNotNull(response);
         assertEquals("Carlos", response.nombre());
         assertEquals(1L, response.id());
+        assertEquals(EstadoEntidad.ACTIVO, response.estado());
     }
 
     @Test
     void testObtenerPaciente_NotFound() {
-        when(pacienteRepository.findById(1L)).thenReturn(Optional.empty());
+        when(pacienteRepository.findByIdAndEstado(1L, EstadoEntidad.ACTIVO)).thenReturn(Optional.empty());
 
         assertThrows(RuntimeException.class, () -> {
             pacienteService.obtenerPaciente(1L);
@@ -117,7 +122,7 @@ class PacienteServiceTest {
                 1L
         );
 
-        when(pacienteRepository.findById(1L)).thenReturn(Optional.of(paciente));
+        when(pacienteRepository.findByIdAndEstado(1L, EstadoEntidad.ACTIVO)).thenReturn(Optional.of(paciente));
         when(pacienteRepository.existsByEmail("newemail@example.com")).thenReturn(false);
         when(dentistaRepository.findById(1L)).thenReturn(Optional.of(dentista));
         when(pacienteRepository.save(any(Paciente.class))).thenReturn(paciente);
@@ -130,7 +135,7 @@ class PacienteServiceTest {
 
     @Test
     void testActualizarPaciente_NotFound() {
-        when(pacienteRepository.findById(1L)).thenReturn(Optional.empty());
+        when(pacienteRepository.findByIdAndEstado(1L, EstadoEntidad.ACTIVO)).thenReturn(Optional.empty());
 
         assertThrows(RuntimeException.class, () -> {
             pacienteService.actualizarPaciente(1L, pacienteRequest);
@@ -139,16 +144,17 @@ class PacienteServiceTest {
 
     @Test
     void testEliminarPaciente_Success() {
-        when(pacienteRepository.existsById(1L)).thenReturn(true);
+        when(pacienteRepository.findByIdAndEstado(1L, EstadoEntidad.ACTIVO)).thenReturn(Optional.of(paciente));
+        when(pacienteRepository.save(any(Paciente.class))).thenReturn(paciente);
 
         pacienteService.eliminarPaciente(1L);
 
-        verify(pacienteRepository).deleteById(1L);
+        verify(pacienteRepository).save(argThat(p -> p.getEstado() == EstadoEntidad.ELIMINADO));
     }
 
     @Test
     void testEliminarPaciente_NotFound() {
-        when(pacienteRepository.existsById(1L)).thenReturn(false);
+        when(pacienteRepository.findByIdAndEstado(1L, EstadoEntidad.ACTIVO)).thenReturn(Optional.empty());
 
         assertThrows(RuntimeException.class, () -> {
             pacienteService.eliminarPaciente(1L);
@@ -166,4 +172,3 @@ class PacienteServiceTest {
         assertEquals("Carlos", response.get(0).nombre());
     }
 }
-

@@ -15,6 +15,7 @@ import com.clinica.model.Dentista;
 import com.clinica.model.dto.DentistaRequest;
 import com.clinica.model.dto.DentistaResponse;
 import com.clinica.model.enums.Especialidad;
+import com.clinica.model.enums.EstadoEntidad;
 import com.clinica.repository.DentistaRepository;
 
 import java.util.List;
@@ -38,7 +39,7 @@ class DentistaServiceTest {
                 "Dr. Juan",
                 "Pérez",
                 "1234567890",
-                "DENTISTA"
+                "GENERAL"
         );
 
         dentista = Dentista.builder()
@@ -46,7 +47,8 @@ class DentistaServiceTest {
                 .nombre("Dr. Juan")
                 .apellido("Pérez")
                 .telefono("1234567890")
-                .especialidad(Especialidad.DENTISTA)
+                .especialidad(Especialidad.GENERAL)
+                .estado(EstadoEntidad.ACTIVO)
                 .build();
     }
 
@@ -58,12 +60,12 @@ class DentistaServiceTest {
 
         assertNotNull(resultado);
         assertEquals("Dr. Juan", resultado.getNombre());
+        assertEquals(EstadoEntidad.ACTIVO, resultado.getEstado());
         verify(dentistaRepository).save(any(Dentista.class));
     }
 
     @Test
     void testGetDentistas() {
-        // Ahora usa findAllWithPacientes() para evitar N+1
         when(dentistaRepository.findAllWithPacientes()).thenReturn(List.of(dentista));
 
         List<DentistaResponse> resultado = dentistaService.getDentistas();
@@ -71,24 +73,24 @@ class DentistaServiceTest {
         assertNotNull(resultado);
         assertEquals(1, resultado.size());
         assertEquals("Dr. Juan", resultado.get(0).nombre());
+        assertEquals(EstadoEntidad.ACTIVO, resultado.get(0).estado());
     }
 
     @Test
     void testObtenerDentista_Success() {
-        // Ahora usa findByIdWithPacientes() para evitar N+1
-        when(dentistaRepository.findByIdWithPacientes(1L)).thenReturn(Optional.of(dentista));
+        when(dentistaRepository.findByIdAndEstadoWithPacientes(1L, EstadoEntidad.ACTIVO)).thenReturn(Optional.of(dentista));
 
         DentistaResponse resultado = dentistaService.obtenerDentista(1L);
 
         assertNotNull(resultado);
         assertEquals("Dr. Juan", resultado.nombre());
         assertEquals(1L, resultado.id());
+        assertEquals(EstadoEntidad.ACTIVO, resultado.estado());
     }
 
     @Test
     void testObtenerDentista_NotFound() {
-        // Ahora usa findByIdWithPacientes()
-        when(dentistaRepository.findByIdWithPacientes(1L)).thenReturn(Optional.empty());
+        when(dentistaRepository.findByIdAndEstadoWithPacientes(1L, EstadoEntidad.ACTIVO)).thenReturn(Optional.empty());
 
         assertThrows(RuntimeException.class, () -> {
             dentistaService.obtenerDentista(1L);
@@ -97,7 +99,7 @@ class DentistaServiceTest {
 
     @Test
     void testActualizarDentista_Success() {
-        when(dentistaRepository.findById(1L)).thenReturn(Optional.of(dentista));
+        when(dentistaRepository.findByIdAndEstadoWithPacientes(1L, EstadoEntidad.ACTIVO)).thenReturn(Optional.of(dentista));
         when(dentistaRepository.save(any(Dentista.class))).thenReturn(dentista);
 
         DentistaResponse resultado = dentistaService.actualizarDentista(1L, dentistaRequest);
@@ -108,7 +110,7 @@ class DentistaServiceTest {
 
     @Test
     void testActualizarDentista_NotFound() {
-        when(dentistaRepository.findById(1L)).thenReturn(Optional.empty());
+        when(dentistaRepository.findByIdAndEstadoWithPacientes(1L, EstadoEntidad.ACTIVO)).thenReturn(Optional.empty());
 
         assertThrows(RuntimeException.class, () -> {
             dentistaService.actualizarDentista(1L, dentistaRequest);
@@ -117,20 +119,20 @@ class DentistaServiceTest {
 
     @Test
     void testEliminarDentista_Success() {
-        when(dentistaRepository.existsById(1L)).thenReturn(true);
+        when(dentistaRepository.findByIdAndEstadoWithPacientes(1L, EstadoEntidad.ACTIVO)).thenReturn(Optional.of(dentista));
+        when(dentistaRepository.save(any(Dentista.class))).thenReturn(dentista);
 
         dentistaService.eliminarDentista(1L);
 
-        verify(dentistaRepository).deleteById(1L);
+        verify(dentistaRepository).save(argThat(d -> d.getEstado() == EstadoEntidad.ELIMINADO));
     }
 
     @Test
     void testEliminarDentista_NotFound() {
-        when(dentistaRepository.existsById(1L)).thenReturn(false);
+        when(dentistaRepository.findByIdAndEstadoWithPacientes(1L, EstadoEntidad.ACTIVO)).thenReturn(Optional.empty());
 
         assertThrows(RuntimeException.class, () -> {
             dentistaService.eliminarDentista(1L);
         });
     }
 }
-

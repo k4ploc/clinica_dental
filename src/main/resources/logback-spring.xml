@@ -14,15 +14,16 @@
         </encoder>
     </appender>
 
-    <!-- Appender de Archivo con Rotación -->
+    <!-- Appender de Archivo con Rotación (sin compresión para evitar conflicto en modo prudent) -->
     <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
         <file>${LOG_FILE}</file>
+        <prudent>false</prudent>
         <encoder>
             <pattern>${LOG_PATTERN}</pattern>
             <charset>UTF-8</charset>
         </encoder>
         <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
-            <fileNamePattern>logs/clinica-%d{yyyy-MM-dd}-%i.log.gz</fileNamePattern>
+            <fileNamePattern>logs/clinica-%d{yyyy-MM-dd}-%i.log</fileNamePattern>
             <maxFileSize>${LOG_FILE_MAX_SIZE}</maxFileSize>
             <maxHistory>${LOG_FILE_MAX_HISTORY}</maxHistory>
             <totalSizeCap>1GB</totalSizeCap>
@@ -32,6 +33,7 @@
     <!-- Appender para Errores -->
     <appender name="ERROR_FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
         <file>logs/clinica-error.log</file>
+        <prudent>false</prudent>
         <filter class="ch.qos.logback.classic.filter.LevelFilter">
             <level>ERROR</level>
             <onMatch>ACCEPT</onMatch>
@@ -42,7 +44,7 @@
             <charset>UTF-8</charset>
         </encoder>
         <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
-            <fileNamePattern>logs/clinica-error-%d{yyyy-MM-dd}-%i.log.gz</fileNamePattern>
+            <fileNamePattern>logs/clinica-error-%d{yyyy-MM-dd}-%i.log</fileNamePattern>
             <maxFileSize>${LOG_FILE_MAX_SIZE}</maxFileSize>
             <maxHistory>${LOG_FILE_MAX_HISTORY}</maxHistory>
         </rollingPolicy>

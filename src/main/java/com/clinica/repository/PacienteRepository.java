@@ -8,6 +8,7 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import com.clinica.model.Paciente;
+import com.clinica.model.enums.EstadoEntidad;
 
 import java.util.List;
 import java.util.Optional;
@@ -54,4 +55,25 @@ public interface PacienteRepository extends JpaRepository<Paciente, Long> {
      * Cuenta pacientes por dentista.
      */
     long countByDentistaId(Long dentistaId);
+
+    /**
+     * Obtiene pacientes activos con paginación.
+     */
+    Page<Paciente> findByEstado(EstadoEntidad estado, Pageable pageable);
+
+    /**
+     * Obtiene un paciente activo por ID.
+     */
+    @Query("SELECT p FROM Paciente p LEFT JOIN FETCH p.dentista WHERE p.id = :id AND p.estado = :estado")
+    Optional<Paciente> findByIdAndEstado(@Param("id") Long id, @Param("estado") EstadoEntidad estado);
+
+    /**
+     * Busca pacientes activos por dentista ID.
+     */
+    List<Paciente> findByDentistaIdAndEstado(Long dentistaId, EstadoEntidad estado);
+
+    /**
+     * Cuenta pacientes activos por dentista.
+     */
+    long countByDentistaIdAndEstado(Long dentistaId, EstadoEntidad estado);
 }
